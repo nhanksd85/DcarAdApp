@@ -18,10 +18,10 @@ import butterknife.BindView;
 public class MainActivity extends AppCompatActivity {
 
 
-    @BindView(R.id.videoViewAdvertisement)
+
     VideoView mVideoView;
 
-    @BindView(R.id.imgAdvertisement)
+
     ImageView imgAdvertisement;
 
 
@@ -30,33 +30,66 @@ public class MainActivity extends AppCompatActivity {
     private int currentImageFileIndex = 0;
 
     public String roothPath = "";
-    public String match_folder = "";
+    public String match_folder = "quang_cao";
+
+
+    @Override
+    protected void onPause() {
+        int pid = android.os.Process.myPid();
+        android.os.Process.killProcess(pid);
+        super.onPause();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mVideoView = findViewById(R.id.videoViewAdvertisement);
+        imgAdvertisement = findViewById(R.id.imgAdvertisement);
 
         roothPath = getUSB();
+        Log.d("DCAR", "Root path USB: " + roothPath);
+
+        roothPath = findAdvertisementFolder(new File(roothPath));
+        Log.d("DCAR", "Root path QUANG CAO: " + roothPath);
+
+        if(roothPath.length() > 3){
+            load_ad_files(new File(roothPath));
+            load_img_files(new File(roothPath));
+
+
+            if(name_path_list.size() > 0){
+                currentAdFileIndex = 0;
+                playVideoFromUSB(name_path_list.get(currentAdFileIndex));
+                imgAdvertisement.setVisibility(View.GONE);
+                mVideoView.setVisibility(View.VISIBLE);
+
+            } else if(name_img_path_list.size() > 0){
+                imgAdvertisement.setVisibility(View.VISIBLE);
+                mVideoView.pause();
+                mVideoView.setVisibility(View.GONE);
+
+            }
+            else{
+
+            }
+        }else{
+
+        }
+
+
 
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 //TODO: move to next video
-                if(name_img_path_list.size() > 0){
 
-                    currentImageFileIndex = 0;
+                if (name_path_list.size() > 0) {
+                    currentAdFileIndex++;
+                    if (currentAdFileIndex >= name_path_list.size()) currentAdFileIndex = 0;
+                    playVideoFromUSB(name_path_list.get(currentAdFileIndex));
 
-                }else {
-                    if (name_path_list.size() > 0) {
-                        currentAdFileIndex++;
-                        if (currentAdFileIndex >= name_path_list.size()) currentAdFileIndex = 0;
-                        playVideoFromUSB(name_path_list.get(currentAdFileIndex));
-
-                    }
                 }
-
-
             }
         });
     }
@@ -193,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void playVideoFromUSB(String path){
-        isActivatedImageAnimation = false;
+        //isActivatedImageAnimation = false;
         File aFile = new File(path);
         if(aFile.exists()){
             imgAdvertisement.setVisibility(View.GONE);
@@ -202,8 +235,8 @@ public class MainActivity extends AppCompatActivity {
             mVideoView.start();
         }else{
             Log.d("DCAR", "Video is not existed");
-            ((MainActivity)getActivity()).fullScreenMode(false);
-            ((MainActivity)getActivity()).selectFragment(HOME_FRAGMENT_INDEX);
+            //((MainActivity)getActivity()).fullScreenMode(false);
+            //((MainActivity)getActivity()).selectFragment(HOME_FRAGMENT_INDEX);
         }
     }
 }
